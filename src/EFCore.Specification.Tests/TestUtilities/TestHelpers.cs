@@ -423,6 +423,11 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
         {
             Assert.Equal(expected.Count, actual.Count);
 
+            if (elementSorter == null && !verifyOrdered)
+            {
+                CheckResultIsComparable(expected);
+            }
+
             elementSorter = elementSorter ?? (e => e);
             elementAsserter = elementAsserter ?? Assert.Equal;
             if (!verifyOrdered)
@@ -447,6 +452,11 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
             bool verifyOrdered)
         {
             Assert.Equal(expected.Count, actual.Count);
+
+            if (elementSorter == null && !verifyOrdered)
+            {
+                CheckResultIsComparable(expected);
+            }
 
             elementAsserter = elementAsserter ?? Assert.Equal;
             if (!verifyOrdered)
@@ -473,6 +483,11 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
         {
             Assert.Equal(expected.Count, actual.Count);
 
+            if (elementSorter == null && !verifyOrdered)
+            {
+                CheckResultIsComparable(expected);
+            }
+
             elementAsserter = elementAsserter ?? Assert.Equal;
             if (!verifyOrdered)
             {
@@ -486,6 +501,20 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
             }
 
             return actual.Count;
+        }
+
+        private static void CheckResultIsComparable<T>(IList<T> expected)
+        {
+            if (expected.Count > 1)
+            {
+                var nonNullElement = expected.FirstOrDefault(e => e != null);
+                if (nonNullElement != null
+                    && nonNullElement.GetType().GetInterface(nameof(IComparable)) == null)
+                {
+                    throw new InvalidOperationException(
+                        "Result of the query passed to AssertQuery method must implement IComparable, be a well known entity type, or the elementSorter must be explicitly specified as an argument to AssertQuery.");
+                }
+            }
         }
 
         public static void ExecuteWithStrategyInTransaction<TContext>(
