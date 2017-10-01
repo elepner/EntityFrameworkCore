@@ -551,7 +551,7 @@ namespace Microsoft.EntityFrameworkCore.Query
                     .Select(o => -((long)o.OrderID)),
                 assertOrder: true);
         }
-
+        
         [ConditionalFact]
         public virtual void Select_non_matching_value_types_from_length_introduces_explicit_cast()
         {
@@ -592,6 +592,17 @@ namespace Microsoft.EntityFrameworkCore.Query
                 os => from o in os
                       where o.CustomerID == "ALFKI"
                       select o.CustomerID == null ? true : o.OrderID < 100);
+        }
+
+        [ConditionalFact]
+        public virtual void Select_with_evaluatable_cast()
+        {
+            long closureVariable = 344;
+            AssertQuery<Order>(
+                os => os
+                    .Where(o => o.OrderID == (int)closureVariable)
+                ,
+                assertOrder: false);
         }
     }
 }

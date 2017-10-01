@@ -209,6 +209,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal
         /// </summary>
         protected override Expression VisitMember(MemberExpression memberExpression)
         {
+	        var me = memberExpression;
             if (!_partialEvaluationInfo.IsEvaluatableExpression(memberExpression))
             {
                 return base.VisitMember(memberExpression);
@@ -281,6 +282,16 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal
         /// </summary>
         protected override Expression VisitUnary(UnaryExpression unaryExpression)
         {
+            if (unaryExpression.NodeType == ExpressionType.Convert
+                && _partialEvaluationInfo.IsEvaluatableExpression(unaryExpression))
+            {
+                var castedValue = Evaluate(unaryExpression, out var parameterName);
+                if (!(castedValue is Expression))
+                {
+                    return Expression.Constant(castedValue, unaryExpression.Type);
+                }
+            }
+
             var newExpression = base.VisitUnary(unaryExpression);
 
             if (newExpression != unaryExpression
